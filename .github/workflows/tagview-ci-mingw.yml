@@ -16,7 +16,7 @@ jobs:
         run: choco install ninja
 
       - name: Install Qt
-        uses: jurplel/install-qt-action@v3
+        uses: jurplel/install-qt-action@v4
         with:
           version: ${{env.QT_VERSION}}
           arch: win64_mingw
