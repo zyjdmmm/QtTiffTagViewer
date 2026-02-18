@@ -1,0 +1,21 @@
+name: Test MinGW Path
+on: [workflow_dispatch]  # 手动触发
+jobs:
+  check-path:
+    runs-on: windows-latest
+    steps:
+      - name: Install Qt + MinGW
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          arch: 'win64_mingw1310'  # 指定 MinGW 架构
+          cache: false
+      - name: 打印所有关键路径
+        run: |
+          echo "QT_ROOT_DIR: $env:QT_ROOT_DIR"
+          echo "IQTA_TOOLS: $env:IQTA_TOOLS"
+          echo "PATH 中的 MinGW 路径："
+          $env:PATH -split ';' | Select-String "mingw"
+          echo "MinGW 目录文件列表："
+          ls "$env:QT_ROOT_DIR/bin" | Select-Object Name | FindStr "gcc\|g++\|mingw"
+        shell: pwsh
