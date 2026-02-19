@@ -14,14 +14,13 @@ jobs:
       - name: Install ninja (windows)
         run: choco install ninja
 
-      - name: Install Qt
+      - name: 安装 Qt
         uses: jurplel/install-qt-action@v3
         with:
           version: ${{env.QT_VERSION}}
           arch: win64_mingw
 
-
-#----------------------------------------------------------#
+#--------------------------------------------------------#
       - name: 打印用户环境变量PATH
         run: | 
           Write-Host "`n=== User PATH ==="
@@ -31,13 +30,36 @@ jobs:
         run: |
           Write-Host "=== System PATH ==="
           [Environment]::GetEnvironmentVariable("PATH", "Machine") -split ';' | ForEach-Object { Write-Host $_ }
-#----------------------------------------------------------#    
+#--------------------------------------------------------#
 
 
-      - name: Checkout source code
+      # 核心步骤：将QT_ROOT_DIR\bin添加到PATH环境变量
+      - name: 添加Qt bin目录到环境变量PATH
+        run: |
+          # 拼接Qt的bin目录路径
+          $qtBinPath = Join-Path -Path $env:QT_ROOT_DIR -ChildPath "bin"
+          
+          # 将路径添加到当前会话的PATH（优先级最高）
+          $env:PATH = "$qtBinPath;$env:PATH"
+          
+
+
+#--------------------------------------------------------#
+      - name: 打印用户环境变量PATH2
+        run: | 
+          Write-Host "`n=== User PATH ==="
+          [Environment]::GetEnvironmentVariable("PATH", "User") -split ';' | ForEach-Object { Write-Host $_ }
+
+      - name: 打印系统环境变量PATH2
+        run: |
+          Write-Host "=== System PATH ==="
+          [Environment]::GetEnvironmentVariable("PATH", "Machine") -split ';' | ForEach-Object { Write-Host $_ }
+#--------------------------------------------------------#
+
+      - name: 下载源代码
         uses: actions/checkout@v3
  
-      - name: Build
+      - name: 编译
         run: |
           cmake -S . -B build_dir -G "Ninja Multi-Config"
           cmake --build build_dir --config Release
