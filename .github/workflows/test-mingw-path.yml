@@ -1,4 +1,4 @@
-name: TagView-CI-MinGW
+name: TagView-CI-MinGW-Path-Check
  
 on: [push]
 
