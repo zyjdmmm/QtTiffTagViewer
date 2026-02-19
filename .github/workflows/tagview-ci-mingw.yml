@@ -3,7 +3,7 @@ name: TagView-CI-MinGW
 on: [push]
 
 env:
-  QT_VERSION: 6.5.3
+  QT_VERSION: 6.8.3
 
 jobs:
   build:
@@ -32,18 +32,12 @@ jobs:
           [Environment]::GetEnvironmentVariable("PATH", "Machine") -split ';' | ForEach-Object { Write-Host $_ }
 #--------------------------------------------------------#
 
+      - name: 强制给 Ninja 补全 MinGW 环境(`注意我发现只是对此次终端生效`)
+        run: | 
+          # 把MinGW的bin目录放到PATH最前面，确保优先找到
+          $env:PATH = "D:\a\QtTiffTagViewer\Qt\6.8.3\mingw_64\bin;" + $env:PATH
 
-      # 核心步骤：将QT_ROOT_DIR\bin添加到PATH环境变量
-      - name: 添加Qt bin目录到环境变量PATH
-        run: |
-          # 拼接Qt的bin目录路径
-          $qtBinPath = Join-Path -Path $env:QT_ROOT_DIR -ChildPath "bin"
-          
-          # 将路径添加到当前会话的PATH（优先级最高）
-          $env:PATH = "$qtBinPath;$env:PATH"
-          
-
-
+                
 #--------------------------------------------------------#
       - name: 打印用户环境变量PATH2
         run: | 
