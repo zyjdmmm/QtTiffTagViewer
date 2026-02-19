@@ -37,16 +37,43 @@ jobs:
           [Environment]::GetEnvironmentVariable("PATH", "Machine") -split ';' | ForEach-Object { Write-Host $_ }
 #--------------------------------------------------------#
 
-      # 核心：通过 GITHUB_ENV 持久化添加 Qt bin 到 PATH
-      - name: 持久化添加 Qt bin 目录到环境变量 PATH
-        run: |
-          # 直接指定固定的 Qt bin 路径（替换原本的动态拼接）
-          $qtBinPath = "D:\a\QtTiffTagViewer\Qt\6.8.3\mingw_64\bin"
-          Write-Host "即将添加 Qt bin 目录到 PATH: $qtBinPath"
-          
-          # 关键：向 GITHUB_ENV 写入 PATH，覆盖并保留原有 PATH
-          # Windows PowerShell 写法（避免编码问题）
-          echo "PATH=$qtBinPath;$env:PATH" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+- name: 持久化添加 Qt bin 目录到环境变量 PATH（确保生效）
+  run: |
+    # 1. 写死 Qt bin 路径（注意PowerShell中路径用双引号包裹）
+    $qtBinPath = "D:\a\QtTiffTagViewer\Qt\6.8.3\mingw_64\bin"
+    
+    # 2. 先验证路径是否存在（关键！路径错了一切白搭）
+    if (-not (Test-Path -Path $qtBinPath)) {
+      Write-Error "❌ Qt bin 路径不存在: $qtBinPath"
+      Write-Error "请检查路径是否正确，比如版本号、仓库名、mingw_64是否拼写正确"
+      exit 1 # 路径错误直接终止，避免后续步骤失败
+    }
+    Write-Host "✅ Qt bin 路径存在: $qtBinPath"
+    
+    # 3. 正确写入 GITHUB_ENV（避开PowerShell echo的坑，用Set-Content更可靠）
+    # 拼接新的PATH：Qt bin在前 + 原有PATH在后
+    $newPath = "$qtBinPath;$($env:PATH)"
+    # 写入GITHUB_ENV（覆盖式写入，避免重复追加）
+    Set-Content -Path $env:GITHUB_ENV -Value "PATH=$newPath" -Encoding UTF8
+    
+    # 4. 临时验证（当前步骤内的PATH）
+    Write-Host "🔍 当前步骤内的PATH（前3项）："
+    $env:PATH -split ';' | Select-Object -First 3 | ForEach-Object { Write-Host $_ }
+
+# 新增：验证后续步骤中PATH是否生效（关键！确认跨步骤生效）
+- name: 验证 Qt bin 路径是否跨步骤生效
+  run: |
+    Write-Host "🔍 后续步骤的PATH（前3项）："
+    $env:PATH -split ';' | Select-Object -First 3 | ForEach-Object { Write-Host $_ }
+    
+    # 验证能否找到Qt的工具（比如qmake）
+    if (Get-Command qmake -ErrorAction SilentlyContinue) {
+      Write-Host "✅ 成功找到qmake，路径：$(Get-Command qmake).Source"
+      qmake --version
+    } else {
+      Write-Error "❌ 未找到qmake，PATH添加失败！"
+      exit 1
+    }
                 
 #--------------------------------------------------------#
       - name: 打印用户环境变量PATH2
