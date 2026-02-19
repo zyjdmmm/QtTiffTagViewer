@@ -2,6 +2,7 @@ name: TagView-CI-MinGW
  
 on: [push]
 
+
 env:
   QT_VERSION: 6.5.3
 
@@ -11,60 +12,19 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      # 第一步：先检出代码（用原生环境，避免重置环境导致checkout失败）
-      - name: Checkout source code（先执行，用原生环境）
-        uses: actions/checkout@v4  # 升级到v4，兼容性更好
-        with:
-          fetch-depth: 1  # 仅拉取最新代码，加速检出
+      - name: Install ninja (windows)
+        run: choco install ninja
 
-      # 第二步：重置环境变量（仅保留核心路径，此时代码已检出）
-      - name: 重置环境变量（仅保留系统核心+choco路径）
-        shell: pwsh
-        run: |
-          # 补充checkout/解压必需的路径，其余仍清空
-          $cleanPath = @(
-            "C:\Windows\system32",
-            "C:\Windows",
-            "C:\Windows\System32\Wbem",
-            "C:\Windows\System32\WindowsPowerShell\v1.0",  # PowerShell核心（解压必需）
-            "C:\Program Files\PowerShell\7",               # 兼容PowerShell 7
-            "C:\ProgramData\Chocolatey\bin"                # choco路径（装Ninja）
-          )
-          # 清空冗余，保留核心
-          $env:PATH = $cleanPath | Select-Object -Unique | Join-String -Separator ';'
-          echo "PATH=$env:PATH" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-          # 验证重置后的PATH
-          Write-Host "===== 重置后的干净环境 PATH ====="
-          echo $env:PATH
-
-      # 第三步：在干净环境装Ninja
-      - name: Install ninja (干净环境安装)
-        run: choco install ninja -y
-
-      # 第四步：在干净环境装Qt
-      - name: Install Qt（干净环境安装）
-        uses: jurplel/install-qt-action@v4
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
         with:
           version: ${{env.QT_VERSION}}
           arch: win64_mingw
-          set-env: true
-          cache: true
 
-      # 第五步：验证环境工具
-      - name: 验证干净环境的工具路径
-        shell: pwsh
-        run: |
-          Write-Host "===== 最终环境工具验证 ====="
-          Write-Host "Ninja 路径: $(Get-Command ninja | Select-Object -ExpandProperty Source)"
-          Write-Host "g++ 路径: $(Get-Command g++ | Select-Object -ExpandProperty Source)"
-          Write-Host "qmake 路径: $(Get-Command qmake | Select-Object -ExpandProperty Source)"
-
-      # 第六步：编译
+      - name: Checkout source code
+        uses: actions/checkout@v3
+ 
       - name: Build
-        shell: pwsh
         run: |
-          cmake -S . -B build_dir -G "Ninja Multi-Config" `
-            -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR" `
-            -DCMAKE_BUILD_TYPE=Release
+          cmake -S . -B build_dir -G "Ninja Multi-Config"
           cmake --build build_dir --config Release
