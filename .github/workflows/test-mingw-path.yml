@@ -1,21 +1,89 @@
-name: Test MinGW Path
-on: [workflow_dispatch]  # 手动触发
+name: TagView-CI-MinGW
+ 
+on: [push]
+
+env:
+  QT_VERSION: 6.5.3
+
 jobs:
-  check-path:
+  build:
+    name: "Print Paths (MinGW & Ninja)"
     runs-on: windows-latest
+
     steps:
-      - name: Install Qt + MinGW
+      - name: Install ninja (windows)
+        run: choco install ninja
+
+      - name: Install Qt (with MinGW)
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.8.3'
-          arch: 'win64_mingw1310'  # 指定 MinGW 架构
-          cache: false
-      - name: 打印所有关键路径
-        run: |
-          echo "QT_ROOT_DIR: $env:QT_ROOT_DIR"
-          echo "IQTA_TOOLS: $env:IQTA_TOOLS"
-          echo "PATH 中的 MinGW 路径："
-          $env:PATH -split ';' | Select-String "mingw"
-          echo "MinGW 目录文件列表："
-          ls "$env:QT_ROOT_DIR/bin" | Select-Object Name | FindStr "gcc\|g++\|mingw"
+          version: ${{env.QT_VERSION}}
+          arch: win64_mingw
+          # 显式开启环境变量设置，确保 QT_ROOT_DIR 等变量生效
+          set-env: true
+
+      - name: Checkout source code (保留，若无需代码可注释)
+        uses: actions/checkout@v3
+ 
+      - name: Print all critical paths (核心步骤)
         shell: pwsh
+        run: |
+          # 1. 打印 Qt 安装相关环境变量（定位 Qt 自带 MinGW）
+          Write-Host "===== Qt Environment Variables ====="
+          Write-Host "QT_ROOT_DIR: $env:QT_ROOT_DIR"
+          Write-Host "IQTA_TOOLS: $env:IQTA_TOOLS"
+          Write-Host "PATH (full): $env:PATH"
+
+          # 2. 定位并打印 Qt 自带 MinGW 路径
+          Write-Host "`n===== Qt MinGW Path ====="
+          $mingw_paths = $env:PATH -split ';' | Where-Object { $_ -match 'mingw' }
+          if ($mingw_paths) {
+            foreach ($path in $mingw_paths) {
+              Write-Host "MinGW Path in PATH: $path"
+              # 验证 MinGW 可执行文件
+              if (Test-Path "$path/g++.exe") {
+                Write-Host "g++ path: $path/g++.exe"
+                & "$path/g++.exe" --version
+              }
+              if (Test-Path "$path/gcc.exe") {
+                Write-Host "gcc path: $path/gcc.exe"
+                & "$path/gcc.exe" --version
+              }
+            }
+          } else {
+            Write-Host "No MinGW path found in PATH!"
+            # 兜底查找 Qt 目录下的 MinGW
+            $qt_mingw = Get-ChildItem -Path "$env:QT_ROOT_DIR/../Tools" -Recurse -Name "g++.exe" -ErrorAction SilentlyContinue
+            if ($qt_mingw) {
+              Write-Host "Qt MinGW found at: $env:QT_ROOT_DIR/../Tools/$qt_mingw"
+            }
+          }
+
+          # 3. 定位并打印 Ninja 路径
+          Write-Host "`n===== Ninja Path ====="
+          $ninja_path = Get-Command ninja -ErrorAction SilentlyContinue
+          if ($ninja_path) {
+            Write-Host "Ninja full path: $($ninja_path.Source)"
+            & ninja --version
+          } else {
+            Write-Host "Ninja not found in PATH!"
+            # 兜底查找 Chocolatey 安装的 Ninja
+            $choco_ninja = Get-ChildItem -Path "C:\ProgramData\chocolatey\bin" -Name "ninja.exe" -ErrorAction SilentlyContinue
+            if ($choco_ninja) {
+              Write-Host "Ninja found in Chocolatey: C:\ProgramData\chocolatey\bin\$choco_ninja"
+              & "C:\ProgramData\chocolatey\bin\ninja.exe" --version
+            }
+          }
+
+      # 可选：手动添加 MinGW 路径（保留原逻辑，仅作验证）
+      - name: Add MinGW to PATH (optional)
+        run: |
+          echo "C:/mingw64/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          # 验证手动添加的路径
+          Write-Host "`n===== Manually added MinGW path check ====="
+          if (Test-Path "C:/mingw64/bin/g++.exe") {
+            Write-Host "Manual MinGW g++: C:/mingw64/bin/g++.exe"
+            & C:/mingw64/bin/g++.exe --version
+          } else {
+            Write-Host "Manual MinGW path (C:/mingw64/bin) does NOT exist!"
+          }
