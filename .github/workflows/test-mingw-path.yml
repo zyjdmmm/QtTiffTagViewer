@@ -3,7 +3,7 @@ name: TagView-CI-MinGW-Path-Check
 on: [push]
 
 env:
-  QT_VERSION: 6.5.3
+  QT_VERSION: 6.8.3
 
 jobs:
   build:
