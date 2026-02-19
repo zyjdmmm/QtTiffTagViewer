@@ -2,7 +2,6 @@ name: TagView-CI-MinGW
  
 on: [push]
 
-
 env:
   QT_VERSION: 6.5.3
 
@@ -12,43 +11,57 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Install ninja (windows)
-        run: choco install ninja
+      # 第一步：先重置环境变量到「仅系统核心」（清空所有预装冗余）
+      - name: 重置环境变量（仅保留系统核心路径）
+        shell: pwsh
+        run: |
+          # 仅保留 Windows 系统核心路径（能执行 choco/powershell 即可）
+          $cleanPath = @(
+            "C:\Windows\system32",
+            "C:\Windows",
+            "C:\Windows\System32\Wbem",
+            "C:\ProgramData\Chocolatey\bin"  # 仅保留choco基础路径（用于装Ninja）
+          )
+          # 清空原有所有环境变量，仅保留核心路径
+          $env:PATH = $cleanPath | Select-Object -Unique | Join-String -Separator ';'
+          # 持久化到后续步骤
+          echo "PATH=$env:PATH" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-      - name: Install Qt
+          # 验证：打印重置后的PATH（确认无冗余）
+          Write-Host "===== 重置后的干净环境 PATH ====="
+          echo $env:PATH
+
+      # 第二步：在干净环境下安装 Ninja（此时Ninja路径会加到干净的PATH里）
+      - name: Install ninja (干净环境安装)
+        run: choco install ninja -y
+
+      # 第三步：在干净环境下安装 Qt（此时Qt/MinGW路径会加到干净的PATH里）
+      - name: Install Qt（干净环境安装）
         uses: jurplel/install-qt-action@v4
         with:
           version: ${{env.QT_VERSION}}
           arch: win64_mingw
+          set-env: true  # 确保QT_ROOT_DIR生效
+          cache: true    # 加速安装（可选）
 
+      # 第四步：检出代码（此时环境仅含系统核心+Ninja+Qt/MinGW）
       - name: Checkout source code
         uses: actions/checkout@v3
- 
 
-      - name: 移除 C 盘 MinGW 路径 + 验证
+      # 第五步：验证环境（可选，确认无冗余工具）
+      - name: 验证干净环境的工具路径
         shell: pwsh
         run: |
-          # 1. 拆分 PATH 并过滤掉 C 盘的 MinGW 路径
-          $filtered_path = $env:PATH -split ';' | Where-Object {
-            $_ -ne 'C:\mingw64\bin' -and $_ -ne 'C:\Program Files\Git\mingw64\bin'
-          }
-          # 2. 重新拼接 PATH 并持久化到后续步骤
-          $env:PATH = $filtered_path -join ';'
-          echo "PATH=$env:PATH" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host "===== 最终环境工具验证 ====="
+          Write-Host "Ninja 路径: $(Get-Command ninja | Select-Object -ExpandProperty Source)"
+          Write-Host "g++ 路径: $(Get-Command g++ | Select-Object -ExpandProperty Source)"
+          Write-Host "qmake 路径: $(Get-Command qmake | Select-Object -ExpandProperty Source)"
 
-          # 3. 打印验证（确认 C 盘 MinGW 已移除 + Qt MinGW 生效）
-          Write-Host "===== 移除 C 盘 MinGW 后验证 ====="
-          # 检查 PATH 中是否还有 C 盘 MinGW
-          Write-Host "PATH 中是否包含 C:\mingw64\bin: $($env:PATH -contains 'C:\mingw64\bin')"
-          Write-Host "PATH 中是否包含 Git MinGW: $($env:PATH -contains 'C:\Program Files\Git\mingw64\bin')"
-          # 检查当前生效的 g++/gcc 路径（应为 Qt 自带）
-          Write-Host "`n当前 g++ 路径："
-          Get-Command g++ -ErrorAction Stop | Select-Object -ExpandProperty Source
-          Write-Host "`n当前 g++ 版本："
-          g++ --version | Select-Object -First 1
-
-
+      # 第六步：编译（此时环境无任何预装冗余干扰）
       - name: Build
+        shell: pwsh
         run: |
-          cmake -S . -B build_dir -G "Ninja Multi-Config"
+          cmake -S . -B build_dir -G "Ninja Multi-Config" `
+            -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR" `
+            -DCMAKE_BUILD_TYPE=Release
           cmake --build build_dir --config Release
