@@ -19,6 +19,11 @@ jobs:
         with:
           version: ${{env.QT_VERSION}}
           arch: win64_mingw
+          # 核心优化1：开启缓存（关键！后续运行直接用缓存）
+          cache: true
+          # 可选：跳过文档/示例下载（进一步减少体积）
+          documentation: false
+          examples: false
 
 #--------------------------------------------------------#
       - name: 打印用户环境变量PATH
@@ -32,11 +37,16 @@ jobs:
           [Environment]::GetEnvironmentVariable("PATH", "Machine") -split ';' | ForEach-Object { Write-Host $_ }
 #--------------------------------------------------------#
 
-      # - name: 强制给 Ninja 补全 MinGW 环境(`注意我发现只是对此次终端生效`)
-      #   run: | 
-      #     # 把MinGW的bin目录放到PATH最前面，确保优先找到
-      #     $env:PATH = "D:\a\QtTiffTagViewer\Qt\6.8.3\mingw_64\bin;" + $env:PATH
-
+      # 核心：通过 GITHUB_ENV 持久化添加 Qt bin 到 PATH
+      - name: 持久化添加 Qt bin 目录到环境变量 PATH
+        run: |
+          # 直接指定固定的 Qt bin 路径（替换原本的动态拼接）
+          $qtBinPath = "D:\a\QtTiffTagViewer\Qt\6.8.3\mingw_64\bin"
+          Write-Host "即将添加 Qt bin 目录到 PATH: $qtBinPath"
+          
+          # 关键：向 GITHUB_ENV 写入 PATH，覆盖并保留原有 PATH
+          # Windows PowerShell 写法（避免编码问题）
+          echo "PATH=$qtBinPath;$env:PATH" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
                 
 #--------------------------------------------------------#
       - name: 打印用户环境变量PATH2
@@ -55,12 +65,5 @@ jobs:
  
       - name: 编译
         run: |
-          $env:PATH = "D:\a\QtTiffTagViewer\Qt\6.8.3\mingw_64\bin;" + $env:PATH
-
-          [Environment]::GetEnvironmentVariable("PATH", "Machine") -split ';' | ForEach-Object { Write-Host $_ }
-
-
-
-
           cmake -S . -B build_dir -G "Ninja Multi-Config"
           cmake --build build_dir --config Release
