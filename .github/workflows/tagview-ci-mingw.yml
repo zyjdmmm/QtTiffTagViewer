@@ -32,10 +32,10 @@ jobs:
           [Environment]::GetEnvironmentVariable("PATH", "Machine") -split ';' | ForEach-Object { Write-Host $_ }
 #--------------------------------------------------------#
 
-      - name: 强制给 Ninja 补全 MinGW 环境(`注意我发现只是对此次终端生效`)
-        run: | 
-          # 把MinGW的bin目录放到PATH最前面，确保优先找到
-          $env:PATH = "D:\a\QtTiffTagViewer\Qt\6.8.3\mingw_64\bin;" + $env:PATH
+      # - name: 强制给 Ninja 补全 MinGW 环境(`注意我发现只是对此次终端生效`)
+      #   run: | 
+      #     # 把MinGW的bin目录放到PATH最前面，确保优先找到
+      #     $env:PATH = "D:\a\QtTiffTagViewer\Qt\6.8.3\mingw_64\bin;" + $env:PATH
 
                 
 #--------------------------------------------------------#
@@ -55,5 +55,12 @@ jobs:
  
       - name: 编译
         run: |
+          $env:PATH = "D:\a\QtTiffTagViewer\Qt\6.8.3\mingw_64\bin;" + $env:PATH
+
+          [Environment]::GetEnvironmentVariable("PATH", "Machine") -split ';' | ForEach-Object { Write-Host $_ }
+
+
+
+
           cmake -S . -B build_dir -G "Ninja Multi-Config"
           cmake --build build_dir --config Release
