@@ -2,7 +2,6 @@ name: TagView-CI-MinGW
  
 on: [push]
 
-
 env:
   QT_VERSION: 6.5.3
 
@@ -21,8 +20,19 @@ jobs:
           version: ${{env.QT_VERSION}}
           arch: win64_mingw
 
-      - name: Print environment variables
-        run: Get-ChildItem env:
+
+#----------------------------------------------------------#
+      - name: 打印用户环境变量PATH
+        run: | 
+          Write-Host "`n=== User PATH ==="
+          [Environment]::GetEnvironmentVariable("PATH", "User") -split ';' | ForEach-Object { Write-Host $_ }
+
+      - name: 打印系统环境变量PATH
+        run: |
+          Write-Host "=== System PATH ==="
+          [Environment]::GetEnvironmentVariable("PATH", "Machine") -split ';' | ForEach-Object { Write-Host $_ }
+#----------------------------------------------------------#    
+
 
       - name: Checkout source code
         uses: actions/checkout@v3
