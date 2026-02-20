@@ -70,6 +70,15 @@ jobs:
           [Environment]::GetEnvironmentVariable("PATH", "Machine") -split ';' | ForEach-Object { Write-Host $_ }
 #--------------------------------------------------------#
 
+      - name: 另一种打印变量方法
+        shell: pwsh
+        run: |
+          Write-Host "===== Qt Environment Variables ====="
+          Write-Host "QT_ROOT_DIR: $env:QT_ROOT_DIR"
+          Write-Host "IQTA_TOOLS: $env:IQTA_TOOLS"
+          Write-Host "PATH (full): $env:PATH"
+		      Write-Host "===== Qt Environment Variables ====="
+
       - name: 编译
         run: |
           cmake -B ./build -DCMAKE_BUILD_TYPE=Debug -G Ninja
