@@ -36,33 +36,33 @@ jobs:
           [Environment]::GetEnvironmentVariable("PATH", "Machine") -split ';' | ForEach-Object { Write-Host $_ }
 #--------------------------------------------------------#
 
-      - name: 移除 C 盘 MinGW 路径 + 验证
+      # - name: 移除 C 盘 MinGW 路径 + 验证
+      #   shell: pwsh
+      #   run: |
+      #     # 1. 拆分 PATH 并过滤掉 C 盘的 MinGW 路径
+      #     $filtered_path = $env:PATH -split ';' | Where-Object {
+      #       $_ -ne 'C:\mingw64\bin' -and $_ -ne 'C:\Program Files\Git\mingw64\bin'
+      #     }
+      #     # 2. 重新拼接 PATH 并持久化到后续步骤
+      #     $env:PATH = $filtered_path -join ';'
+      #     echo "PATH=$env:PATH" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      #     # 3. 打印验证（确认 C 盘 MinGW 已移除 + Qt MinGW 生效）
+      #     Write-Host "===== 移除 C 盘 MinGW 后验证 ====="
+      #     # 检查 PATH 中是否还有 C 盘 MinGW
+      #     Write-Host "PATH 中是否包含 C:\mingw64\bin: $($env:PATH -contains 'C:\mingw64\bin')"
+      #     Write-Host "PATH 中是否包含 Git MinGW: $($env:PATH -contains 'C:\Program Files\Git\mingw64\bin')"
+      #     # 检查当前生效的 g++/gcc 路径（应为 Qt 自带）
+      #     Write-Host "`n当前 g++ 路径："
+      #     Get-Command g++ -ErrorAction Stop | Select-Object -ExpandProperty Source
+      #     Write-Host "`n当前 g++ 版本："
+      #     g++ --version | Select-Object -First 1
+
+      - name: Set up environment
         shell: pwsh
         run: |
-          # 1. 拆分 PATH 并过滤掉 C 盘的 MinGW 路径
-          $filtered_path = $env:PATH -split ';' | Where-Object {
-            $_ -ne 'C:\mingw64\bin' -and $_ -ne 'C:\Program Files\Git\mingw64\bin'
-          }
-          # 2. 重新拼接 PATH 并持久化到后续步骤
-          $env:PATH = $filtered_path -join ';'
-          echo "PATH=$env:PATH" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-          # 3. 打印验证（确认 C 盘 MinGW 已移除 + Qt MinGW 生效）
-          Write-Host "===== 移除 C 盘 MinGW 后验证 ====="
-          # 检查 PATH 中是否还有 C 盘 MinGW
-          Write-Host "PATH 中是否包含 C:\mingw64\bin: $($env:PATH -contains 'C:\mingw64\bin')"
-          Write-Host "PATH 中是否包含 Git MinGW: $($env:PATH -contains 'C:\Program Files\Git\mingw64\bin')"
-          # 检查当前生效的 g++/gcc 路径（应为 Qt 自带）
-          Write-Host "`n当前 g++ 路径："
-          Get-Command g++ -ErrorAction Stop | Select-Object -ExpandProperty Source
-          Write-Host "`n当前 g++ 版本："
-          g++ --version | Select-Object -First 1
-
-    # - name: Set up environment
-    #   shell: pwsh
-    #   run: |
-    #     # 1. 把 Qt 的路径追加到现有的 PATH 最前面（优先使用）
-    #     $env:PATH = "D:\a\QtTiffTagViewer\Qt\6.5.3\mingw_64\bin;$env:PATH"
+          # 1. 把 Qt 的路径追加到现有的 PATH 最前面（优先使用）
+          $env:PATH = "D:\a\QtTiffTagViewer\Qt\6.5.3\mingw_64\bin;$env:PATH"
         
     #     # 2. 这时候打印出来的，就是既包含系统 mingw64，也包含 Qt 的完整 PATH 了
     #     Write-Host "=== Final Effective PATH ==="
