@@ -77,7 +77,7 @@ jobs:
           Write-Host "QT_ROOT_DIR: $env:QT_ROOT_DIR"
           Write-Host "IQTA_TOOLS: $env:IQTA_TOOLS"
           Write-Host "PATH (full): $env:PATH"
-		      Write-Host "===== Qt Environment Variables ====="
+          
 
       - name: 编译
         run: |
