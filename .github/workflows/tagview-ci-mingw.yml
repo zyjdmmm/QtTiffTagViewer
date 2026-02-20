@@ -46,12 +46,12 @@ jobs:
 
           # 方式1：正确的 GITHUB_ENV 写入方式（推荐）
           # 使用PowerShell的Write-Output避免编码和换行问题
-          Write-Output "PATH=$qtBinPath;$env:PATH" >> $env:GITHUB_ENV
+          # Write-Output "PATH=$qtBinPath;$env:PATH" >> $env:GITHUB_ENV
 
           # 方式2：备选方案（如果方式1仍有问题）
-          # $newPath = "$qtBinPath;$env:PATH"
-          # [Environment]::SetEnvironmentVariable("PATH", $newPath, "Process")
-          # Write-Output "PATH=$newPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding ASCII -Append
+          $newPath = "$qtBinPath;$env:PATH"
+          [Environment]::SetEnvironmentVariable("PATH", $newPath, "Process")
+          Write-Output "PATH=$newPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding ASCII -Append
 
       - name: 验证 Qt bin 目录是否添加到 PATH
         shell: pwsh
