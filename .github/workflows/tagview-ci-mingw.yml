@@ -24,6 +24,17 @@ jobs:
       - name: 下载项目代码
         uses: actions/checkout@v3
  
+ #--------------------------------------------------------#
+      - name: 打印用户环境变量PATH2
+        run: | 
+          Write-Host "`n=== User PATH ==="
+          [Environment]::GetEnvironmentVariable("PATH", "User") -split ';' | ForEach-Object { Write-Host $_ }
+
+      - name: 打印系统环境变量PATH2
+        run: |
+          Write-Host "=== System PATH ==="
+          [Environment]::GetEnvironmentVariable("PATH", "Machine") -split ';' | ForEach-Object { Write-Host $_ }
+#--------------------------------------------------------#
 
       - name: 移除 C 盘 MinGW 路径 + 验证
         shell: pwsh
@@ -47,6 +58,17 @@ jobs:
           Write-Host "`n当前 g++ 版本："
           g++ --version | Select-Object -First 1
 
+#--------------------------------------------------------#
+      - name: 打印用户环境变量PATH2
+        run: | 
+          Write-Host "`n=== User PATH ==="
+          [Environment]::GetEnvironmentVariable("PATH", "User") -split ';' | ForEach-Object { Write-Host $_ }
+
+      - name: 打印系统环境变量PATH2
+        run: |
+          Write-Host "=== System PATH ==="
+          [Environment]::GetEnvironmentVariable("PATH", "Machine") -split ';' | ForEach-Object { Write-Host $_ }
+#--------------------------------------------------------#
 
       - name: 编译
         run: |
