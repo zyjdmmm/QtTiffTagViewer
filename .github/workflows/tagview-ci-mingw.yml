@@ -2,8 +2,9 @@ name: TagView-CI-MinGW
  
 on: [push]
 
+
 env:
-  QT_VERSION: 6.8.3
+  QT_VERSION: 6.5.3
 
 jobs:
   build:
@@ -11,77 +12,42 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: 安装 ninja (windows)
+      - name: 安装 ninja
         run: choco install ninja
 
       - name: 安装 Qt
-        uses: jurplel/install-qt-action@v3
+        uses: jurplel/install-qt-action@v4
         with:
           version: ${{env.QT_VERSION}}
           arch: win64_mingw
-          # 核心优化1：开启缓存（关键！后续运行直接用缓存）
-          cache: true
-          # 可选：跳过文档/示例下载（进一步减少体积）
-          documentation: false
-          examples: false
 
-#--------------------------------------------------------#
-      - name: 打印用户环境变量PATH
-        run: | 
-          Write-Host "`n=== User PATH ==="
-          [Environment]::GetEnvironmentVariable("PATH", "User") -split ';' | ForEach-Object { Write-Host $_ }
-
-      - name: 打印系统环境变量PATH
-        run: |
-          Write-Host "=== System PATH ==="
-          [Environment]::GetEnvironmentVariable("PATH", "Machine") -split ';' | ForEach-Object { Write-Host $_ }
-#--------------------------------------------------------#
-
-      - name: 持久化添加 Qt bin 目录到环境变量 PATH
-        shell: pwsh
-        run: |
-          # 固定的 Qt bin 路径
-          $qtBinPath = "D:\a\QtTiffTagViewer\Qt\6.8.3\mingw_64\bin"
-          Write-Host "准备添加 Qt bin 目录到 PATH: $qtBinPath"
-
-          # 方式1：正确的 GITHUB_ENV 写入方式（推荐）
-          # 使用PowerShell的Write-Output避免编码和换行问题
-          # Write-Output "PATH=$qtBinPath;$env:PATH" >> $env:GITHUB_ENV
-
-          # 方式2：备选方案（如果方式1仍有问题）
-          $newPath = "$qtBinPath;$env:PATH"
-          [Environment]::SetEnvironmentVariable("PATH", $newPath, "Process")
-          Write-Output "PATH=$newPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding ASCII -Append
-
-      - name: 验证 Qt bin 目录是否添加到 PATH
-        shell: pwsh
-        run: |
-          # 打印完整的 PATH 环境变量
-          Write-Host "当前完整 PATH: $env:PATH"
-          
-          # 检查 Qt bin 路径是否存在于 PATH 中
-          if ($env:PATH -like "*6.8.3\mingw_64\bin*") {
-            Write-Host "✅ Qt bin 目录已成功添加到 PATH"
-          } else {
-            Write-Host "❌ Qt bin 目录未添加到 PATH"
-            exit 1 # 验证失败则终止工作流
-          }
-                
-#--------------------------------------------------------#
-      - name: 打印用户环境变量PATH2
-        run: | 
-          Write-Host "`n=== User PATH ==="
-          [Environment]::GetEnvironmentVariable("PATH", "User") -split ';' | ForEach-Object { Write-Host $_ }
-
-      - name: 打印系统环境变量PATH2
-        run: |
-          Write-Host "=== System PATH ==="
-          [Environment]::GetEnvironmentVariable("PATH", "Machine") -split ';' | ForEach-Object { Write-Host $_ }
-#--------------------------------------------------------#
-
-      - name: 下载源代码
+      - name: 下载项目代码
         uses: actions/checkout@v3
  
+
+      - name: 移除 C 盘 MinGW 路径 + 验证
+        shell: pwsh
+        run: |
+          # 1. 拆分 PATH 并过滤掉 C 盘的 MinGW 路径
+          $filtered_path = $env:PATH -split ';' | Where-Object {
+            $_ -ne 'C:\mingw64\bin' -and $_ -ne 'C:\Program Files\Git\mingw64\bin'
+          }
+          # 2. 重新拼接 PATH 并持久化到后续步骤
+          $env:PATH = $filtered_path -join ';'
+          echo "PATH=$env:PATH" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+          # 3. 打印验证（确认 C 盘 MinGW 已移除 + Qt MinGW 生效）
+          Write-Host "===== 移除 C 盘 MinGW 后验证 ====="
+          # 检查 PATH 中是否还有 C 盘 MinGW
+          Write-Host "PATH 中是否包含 C:\mingw64\bin: $($env:PATH -contains 'C:\mingw64\bin')"
+          Write-Host "PATH 中是否包含 Git MinGW: $($env:PATH -contains 'C:\Program Files\Git\mingw64\bin')"
+          # 检查当前生效的 g++/gcc 路径（应为 Qt 自带）
+          Write-Host "`n当前 g++ 路径："
+          Get-Command g++ -ErrorAction Stop | Select-Object -ExpandProperty Source
+          Write-Host "`n当前 g++ 版本："
+          g++ --version | Select-Object -First 1
+
+
       - name: 编译
         run: |
           cmake -S . -B build_dir -G "Ninja Multi-Config"
