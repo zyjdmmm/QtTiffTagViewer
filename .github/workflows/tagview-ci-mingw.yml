@@ -59,14 +59,14 @@ jobs:
       #     g++ --version | Select-Object -First 1
 
     - name: Set up environment
-    shell: pwsh
-    run: |
-      # 1. 把 Qt 的路径追加到现有的 PATH 最前面（优先使用）
-      $env:PATH = "D:\a\QtTiffTagViewer\Qt\6.5.3\mingw_64\bin;$env:PATH"
-      
-      # 2. 这时候打印出来的，就是既包含系统 mingw64，也包含 Qt 的完整 PATH 了
-      Write-Host "=== Final Effective PATH ==="
-      $env:PATH -split ';' | Select-Object -First 20 # 只看前20条避免刷屏
+      shell: pwsh
+      run: |
+        # 1. 把 Qt 的路径追加到现有的 PATH 最前面（优先使用）
+        $env:PATH = "D:\a\QtTiffTagViewer\Qt\6.5.3\mingw_64\bin;$env:PATH"
+        
+        # 2. 这时候打印出来的，就是既包含系统 mingw64，也包含 Qt 的完整 PATH 了
+        Write-Host "=== Final Effective PATH ==="
+        $env:PATH -split ';' | Select-Object -First 20 # 只看前20条避免刷屏
 
 #--------------------------------------------------------#
       - name: 打印用户环境变量PATH2
