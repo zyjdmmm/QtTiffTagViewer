@@ -17,7 +17,7 @@ jobs:
 
 
       - name: 安装 Qt
-        uses: jurplel/install-qt-action@v3
+        uses: jurplel/install-qt-action@v4
         with:
           aqtversion: '==3.1.*'
           version: '6.8.3'
@@ -29,7 +29,7 @@ jobs:
           tools: 'tools_mingw1310 tools_ninja tools_cmake'
 
       - name: 下载项目代码
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
   
  #--------------------------------------------------------#
       - name: 打印用户环境变量PATH1
