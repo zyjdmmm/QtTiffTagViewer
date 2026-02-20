@@ -25,12 +25,12 @@ jobs:
         uses: actions/checkout@v3
  
  #--------------------------------------------------------#
-      - name: 打印用户环境变量PATH2
+      - name: 打印用户环境变量PATH1
         run: | 
           Write-Host "`n=== User PATH ==="
           [Environment]::GetEnvironmentVariable("PATH", "User") -split ';' | ForEach-Object { Write-Host $_ }
 
-      - name: 打印系统环境变量PATH2
+      - name: 打印系统环境变量PATH1
         run: |
           Write-Host "=== System PATH ==="
           [Environment]::GetEnvironmentVariable("PATH", "Machine") -split ';' | ForEach-Object { Write-Host $_ }
