@@ -1,5 +1,5 @@
 name: Clean Win11 Env (Official Way)
-on: workflow_dispatch
+on: [push, workflow_dispatch]
 
 jobs:
   clean-env:
