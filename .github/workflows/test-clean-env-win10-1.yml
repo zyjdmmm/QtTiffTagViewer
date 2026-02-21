@@ -1,0 +1,27 @@
+name: Clean Win11 Env (Official Way)
+on: workflow_dispatch
+
+jobs:
+  clean-env:
+    runs-on: windows-latest
+    # 核心：强制覆盖当前Job的环境变量（仅当前Job生效，不影响全局）
+    env:
+      # 强制重置PATH为全新Win11默认值（仅当前Job生效）
+      PATH: >-
+        C:\Windows\system32;
+        C:\Windows;
+        C:\Windows\System32\Wbem;
+        C:\Windows\System32\WindowsPowerShell\v1.0\;
+        C:\Windows\System32\OpenSSH\;
+        C:\Users\runneradmin\AppData\Local\Microsoft\WindowsApps
+      # 清空其他可能干扰的核心变量（按需添加）
+      PYTHONPATH: ""
+      NODE_PATH: ""
+      JAVA_HOME: ""
+    steps:
+      - name: 验证环境变量（仅当前Job生效）
+        run: |
+          Write-Host "当前Job的PATH："
+          $env:PATH -split ';' | ForEach-Object { if ($_) { Write-Host $_ } }
+          # 确认预装工具已不可用（比如python）
+          try { python --version } catch { Write-Host "python已不在PATH中，环境清理成功" }
