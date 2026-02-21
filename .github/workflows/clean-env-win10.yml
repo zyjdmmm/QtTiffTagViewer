@@ -1,0 +1,57 @@
+name: Reset Win11 Env Vars to Minimal
+on: [push, workflow_dispatch]
+
+jobs:
+  reset-env-vars:
+    runs-on: windows-latest
+    steps:
+      - name: 1. 查看重置前的环境变量（用于对比）
+        run: |
+          # 打印所有环境变量（可选，用于对比）
+          Get-ChildItem Env:
+          # 重点打印PATH（最复杂的变量）
+          Write-Host "`n=== 重置前的PATH ==="
+          $env:PATH -split ';' | ForEach-Object { Write-Host $_ }
+
+      - name: 2. 重置环境变量为全新Win11极简状态
+        run: |
+          # --------------------------
+          # 核心步骤：重置环境变量
+          # --------------------------
+          # 1. 定义全新Win11的默认PATH（仅系统核心路径）
+          $newPath = @(
+              "$env:SystemRoot\system32",
+              "$env:SystemRoot",
+              "$env:SystemRoot\System32\Wbem",
+              "$env:SystemRoot\System32\WindowsPowerShell\v1.0\",
+              "$env:SystemRoot\System32\OpenSSH\",
+              "$env:USERPROFILE\AppData\Local\Microsoft\WindowsApps"
+          ) -join ';'
+
+          # 2. 重置PATH（覆盖原有复杂路径）
+          [Environment]::SetEnvironmentVariable("PATH", $newPath, "Machine")  # 系统级
+          [Environment]::SetEnvironmentVariable("PATH", $newPath, "User")     # 用户级
+          $env:PATH = $newPath  # 立即生效当前会话
+
+          # 3. 清空非核心环境变量（保留系统必需的）
+          $coreEnvVars = @(
+              "SystemRoot", "WINDIR", "OS", "COMPUTERNAME", "USERNAME",
+              "USERPROFILE", "HOMEPATH", "HOMEDRIVE", "TEMP", "TMP",
+              "PROCESSOR_ARCHITECTURE", "NUMBER_OF_PROCESSORS"
+          )
+          # 获取所有环境变量，过滤掉核心变量后清空
+          Get-ChildItem Env: | Where-Object { $coreEnvVars -notcontains $_.Name } | ForEach-Object {
+              Remove-Item Env:$($_.Name)
+              # 同时清空系统/用户级的持久化变量（可选）
+              [Environment]::SetEnvironmentVariable($_.Name, $null, "Machine")
+              [Environment]::SetEnvironmentVariable($_.Name, $null, "User")
+          }
+
+          Write-Host "环境变量已重置为全新Win11极简状态！"
+
+      - name: 3. 验证重置后的环境变量
+        run: |
+          Write-Host "`n=== 重置后的所有环境变量 ==="
+          Get-ChildItem Env:
+          Write-Host "`n=== 重置后的PATH ==="
+          $env:PATH -split ';' | ForEach-Object { Write-Host $_ }
