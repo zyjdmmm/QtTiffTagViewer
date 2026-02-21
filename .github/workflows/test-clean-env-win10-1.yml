@@ -3,7 +3,7 @@ on: [push, workflow_dispatch]
 
 jobs:
   clean-env:
-    runs-on: windows-11
+    runs-on: windows-latest
     # 第一步：Job级覆盖基础PATH（减少初始污染）
     env:
       PATH: >-
