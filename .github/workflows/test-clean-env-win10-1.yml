@@ -1,12 +1,11 @@
-name: Clean Win11 Env (Official Way)
+name: Fixed Clean Win11 Env
 on: [push, workflow_dispatch]
 
 jobs:
   clean-env:
-    runs-on: windows-latest
-    # 核心：强制覆盖当前Job的环境变量（仅当前Job生效，不影响全局）
+    runs-on: windows-11
+    # 第一步：Job级覆盖基础PATH（减少初始污染）
     env:
-      # 强制重置PATH为全新Win11默认值（仅当前Job生效）
       PATH: >-
         C:\Windows\system32;
         C:\Windows;
@@ -14,14 +13,44 @@ jobs:
         C:\Windows\System32\WindowsPowerShell\v1.0\;
         C:\Windows\System32\OpenSSH\;
         C:\Users\runneradmin\AppData\Local\Microsoft\WindowsApps
-      # 清空其他可能干扰的核心变量（按需添加）
-      PYTHONPATH: ""
-      NODE_PATH: ""
-      JAVA_HOME: ""
     steps:
-      - name: 验证环境变量（仅当前Job生效）
+      - name: 1. 彻底清理PATH（移除Runner注入的额外路径）
         run: |
-          Write-Host "当前Job的PATH："
-          $env:PATH -split ';' | ForEach-Object { if ($_) { Write-Host $_ } }
-          # 确认预装工具已不可用（比如python）
-          try { python --version } catch { Write-Host "python已不在PATH中，环境清理成功" }
+          # 过滤掉PowerShell 7等额外路径，只保留我们需要的核心路径
+          $desiredPaths = @(
+              "C:\Windows\system32",
+              "C:\Windows",
+              "C:\Windows\System32\Wbem",
+              "C:\Windows\System32\WindowsPowerShell\v1.0\",
+              "C:\Windows\System32\OpenSSH\",
+              "C:\Users\runneradmin\AppData\Local\Microsoft\WindowsApps"
+          )
+          
+          # 拆分当前PATH，过滤出仅需要的路径，去重+去空
+          $cleanedPath = ($env:PATH -split ';' | Where-Object { 
+              $_ -and $desiredPaths -contains $_.Trim() 
+          }) -join ';'
+          
+          # 立即更新当前会话的PATH（彻底生效）
+          $env:PATH = $cleanedPath
+          
+          Write-Host "✅ 清理后的PATH："
+          $env:PATH -split ';' | ForEach-Object { Write-Host "  $_" }
+
+      - name: 2. 安全验证环境（避免退出码错误）
+        run: |
+          # 修复异常捕获：用$LASTEXITCODE判断外部命令是否成功，而非try/catch
+          Write-Host "🔍 检查python是否存在："
+          python --version 2>&1
+          if ($LASTEXITCODE -ne 0) {
+              Write-Host "✅ python已不在PATH中，环境清理成功"
+          } else {
+              Write-Host "❌ python仍在PATH中"
+          }
+          
+          # 可选：验证其他工具是否被清理
+          Write-Host "`n🔍 检查git是否存在："
+          git --version 2>&1
+          if ($LASTEXITCODE -ne 0) {
+              Write-Host "✅ git已不在PATH中"
+          }
