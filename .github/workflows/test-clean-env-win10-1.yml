@@ -23,11 +23,11 @@ jobs:
               "C:\Windows\System32\Wbem",
               "C:\Windows\System32\WindowsPowerShell\v1.0\",
               "C:\Windows\System32\OpenSSH\",
-              "C:\Users\runneradmin\AppData\Local\Microsoft\WindowsApps"
+              "C:\Users\runneradmin\AppData\Local\Microsoft\WindowsApps",
 
               # 保留Chocolatey路径需要下载ninja
               "C:\ProgramData\Chocolatey\bin",
-              "C:\ProgramData\chocolatey\lib\pulumi\tools\Pulumi\bin",
+              "C:\ProgramData\chocolatey\lib\pulumi\tools\Pulumi\bin"
           )
           
           # 拆分当前PATH，过滤出仅需要的路径，去重+去空
