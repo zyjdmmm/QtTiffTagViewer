@@ -5,16 +5,17 @@ jobs:
   clean-env:
     runs-on: windows-latest
     # 第一步：Job级覆盖基础PATH（减少初始污染）
-    env:
-      PATH: >-
-        C:\Windows\system32;
-        C:\Windows;
-        C:\Windows\System32\Wbem;
-        C:\Windows\System32\WindowsPowerShell\v1.0\;
-        C:\Windows\System32\OpenSSH\;
-        C:\Users\runneradmin\AppData\Local\Microsoft\WindowsApps;
-        C:\ProgramData\Chocolatey\bin;
-        C:\ProgramData\chocolatey\lib\pulumi\tools\Pulumi\bin;
+    # env:
+    #   PATH: >-
+    #     C:\Windows\system32;
+    #     C:\Windows;
+    #     C:\Windows\System32\Wbem;
+    #     C:\Windows\System32\WindowsPowerShell\v1.0\;
+    #     C:\Windows\System32\OpenSSH\;
+    #     C:\Users\runneradmin\AppData\Local\Microsoft\WindowsApps;
+    #     C:\ProgramData\Chocolatey\bin;
+    #     C:\ProgramData\chocolatey\lib\pulumi\tools\Pulumi\bin;
+    #     C:\Program Files\Git\bin;
 
     steps:
       - name: 1. 彻底清理PATH（移除Runner注入的额外路径）
