@@ -26,5 +26,8 @@ jobs:
  
       - name: Build
         run: |
+          Write-Host "✅ 最后检查一次PATH："
+          $env:PATH -split ';' | ForEach-Object { Write-Host "  $_" }
+          
           cmake -S . -B build_dir -G "Ninja Multi-Config"
           cmake --build build_dir --config Release
