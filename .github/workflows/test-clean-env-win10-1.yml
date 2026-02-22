@@ -12,10 +12,10 @@ jobs:
         C:\Windows\System32\Wbem;
         C:\Windows\System32\WindowsPowerShell\v1.0\;
         C:\Windows\System32\OpenSSH\;
-        C:\Users\runneradmin\AppData\Local\Microsoft\WindowsApps,
-        "C:\ProgramData\Chocolatey\bin",
-        "C:\ProgramData\chocolatey\lib\pulumi\tools\Pulumi\bin"
-        
+        C:\Users\runneradmin\AppData\Local\Microsoft\WindowsApps;
+        C:\ProgramData\Chocolatey\bin";
+        C:\ProgramData\chocolatey\lib\pulumi\tools\Pulumi\bin";
+
     steps:
       - name: 1. 彻底清理PATH（移除Runner注入的额外路径）
         run: |
