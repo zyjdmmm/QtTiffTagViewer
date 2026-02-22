@@ -24,8 +24,6 @@ jobs:
               "C:\Windows\System32\WindowsPowerShell\v1.0\",
               "C:\Windows\System32\OpenSSH\",
               "C:\Users\runneradmin\AppData\Local\Microsoft\WindowsApps",
-
-              # 保留Chocolatey路径需要下载ninja
               "C:\ProgramData\Chocolatey\bin",
               "C:\ProgramData\chocolatey\lib\pulumi\tools\Pulumi\bin"
           )
