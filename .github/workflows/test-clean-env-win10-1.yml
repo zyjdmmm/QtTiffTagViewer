@@ -5,31 +5,31 @@ jobs:
   clean-env:
     runs-on: windows-latest
     steps:
-      - name: 移除github自带的多余path（似乎没有发现其他的更好的清理方法）
-        run: |
-          # 白名单
-          $desiredPaths = @(
-              "C:\Windows\system32",
-              "C:\Windows",
-              "C:\Windows\System32\Wbem",
-              "C:\Windows\System32\WindowsPowerShell\v1.0\",
-              "C:\Windows\System32\OpenSSH\",
-              "C:\Users\runneradmin\AppData\Local\Microsoft\WindowsApps",
-              "C:\ProgramData\Chocolatey\bin",
-              "C:\ProgramData\chocolatey\lib\pulumi\tools\Pulumi\bin",
-              "C:\Program Files\Git\bin"
-          )
+      # - name: 移除github自带的多余path（似乎没有发现其他的更好的清理方法）
+      #   run: |
+      #     # 白名单
+      #     $desiredPaths = @(
+      #         "C:\Windows\system32",
+      #         "C:\Windows",
+      #         "C:\Windows\System32\Wbem",
+      #         "C:\Windows\System32\WindowsPowerShell\v1.0\",
+      #         "C:\Windows\System32\OpenSSH\",
+      #         "C:\Users\runneradmin\AppData\Local\Microsoft\WindowsApps",
+      #         "C:\ProgramData\Chocolatey\bin",
+      #         "C:\ProgramData\chocolatey\lib\pulumi\tools\Pulumi\bin",
+      #         "C:\Program Files\Git\bin"
+      #     )
           
-          # 只有在白名单里的才会被保留
-          $cleanedPath = ($env:PATH -split ';' | Where-Object { 
-              $_ -and $desiredPaths -contains $_.Trim() 
-          }) -join ';'
+      #     # 只有在白名单里的才会被保留
+      #     $cleanedPath = ($env:PATH -split ';' | Where-Object { 
+      #         $_ -and $desiredPaths -contains $_.Trim() 
+      #     }) -join ';'
           
-          # 立即更新当前会话的PATH（彻底生效）
-          $env:PATH = $cleanedPath
+      #     # 立即更新当前会话的PATH（彻底生效）
+      #     $env:PATH = $cleanedPath
           
-          Write-Host "✅ 清理后的PATH："
-          $env:PATH -split ';' | ForEach-Object { Write-Host "  $_" }
+      #     Write-Host "✅ 清理后的PATH："
+      #     $env:PATH -split ';' | ForEach-Object { Write-Host "  $_" }
 
 
       - name: 安装 ninja
