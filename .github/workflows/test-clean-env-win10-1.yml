@@ -54,5 +54,8 @@ jobs:
 
       - name: 编译
         run: |
+          Write-Host "✅ 最后检查一次PATH："
+          $env:PATH -split ';' | ForEach-Object { Write-Host "  $_" }
+
           cmake -B ./build -DCMAKE_BUILD_TYPE=Debug -G Ninja
           cmake --build ./build
