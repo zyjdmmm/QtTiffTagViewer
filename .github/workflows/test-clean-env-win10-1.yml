@@ -3,8 +3,7 @@ name: TagView-CI-MinGW
 on: [push]
 
 
-env:
-  QT_VERSION: 6.8.3
+
 
 jobs:
   build:
@@ -15,11 +14,17 @@ jobs:
       - name: Install ninja (windows)
         run: choco install ninja
 
-      - name: Install Qt
+      - name: 安装 Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: ${{env.QT_VERSION}}
-          arch: win64_mingw
+          aqtversion: '==3.1.*'
+          version: '6.8.3'
+          host: 'windows'
+          target: 'desktop'
+          arch: 'win64_mingw'
+          modules: 'qt5compat'
+          # 一定要按照qt本版本自带的编译器tools_mingw1310中的gcc.exe
+          tools: 'tools_mingw1310 tools_ninja tools_cmake'
 
       - name: Checkout source code
         uses: actions/checkout@v4
