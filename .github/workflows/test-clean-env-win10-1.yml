@@ -1,26 +1,13 @@
 name: Fixed Clean Win11 Env
-on: [push, workflow_dispatch]
+on: [push]
 
 jobs:
   clean-env:
     runs-on: windows-latest
-    # 第一步：Job级覆盖基础PATH（减少初始污染）
-    # env:
-    #   PATH: >-
-    #     C:\Windows\system32;
-    #     C:\Windows;
-    #     C:\Windows\System32\Wbem;
-    #     C:\Windows\System32\WindowsPowerShell\v1.0\;
-    #     C:\Windows\System32\OpenSSH\;
-    #     C:\Users\runneradmin\AppData\Local\Microsoft\WindowsApps;
-    #     C:\ProgramData\Chocolatey\bin;
-    #     C:\ProgramData\chocolatey\lib\pulumi\tools\Pulumi\bin;
-    #     C:\Program Files\Git\bin;
-
     steps:
-      - name: 1. 彻底清理PATH（移除Runner注入的额外路径）
+      - name: 移除github自带的多余path（似乎没有发现其他的更好的清理方法）
         run: |
-          # 过滤掉PowerShell 7等额外路径，只保留我们需要的核心路径
+          # 白名单
           $desiredPaths = @(
               "C:\Windows\system32",
               "C:\Windows",
@@ -29,10 +16,11 @@ jobs:
               "C:\Windows\System32\OpenSSH\",
               "C:\Users\runneradmin\AppData\Local\Microsoft\WindowsApps",
               "C:\ProgramData\Chocolatey\bin",
-              "C:\ProgramData\chocolatey\lib\pulumi\tools\Pulumi\bin"
+              "C:\ProgramData\chocolatey\lib\pulumi\tools\Pulumi\bin",
+              "C:\Program Files\Git\bin"
           )
           
-          # 拆分当前PATH，过滤出仅需要的路径，去重+去空
+          # 只有在白名单里的才会被保留
           $cleanedPath = ($env:PATH -split ';' | Where-Object { 
               $_ -and $desiredPaths -contains $_.Trim() 
           }) -join ';'
@@ -42,24 +30,6 @@ jobs:
           
           Write-Host "✅ 清理后的PATH："
           $env:PATH -split ';' | ForEach-Object { Write-Host "  $_" }
-
-      # - name: 2. 安全验证环境（避免退出码错误）
-      #   run: |
-      #     # 修复异常捕获：用$LASTEXITCODE判断外部命令是否成功，而非try/catch
-      #     Write-Host "🔍 检查python是否存在："
-      #     python --version 2>&1
-      #     if ($LASTEXITCODE -ne 0) {
-      #         Write-Host "✅ python已不在PATH中，环境清理成功"
-      #     } else {
-      #         Write-Host "❌ python仍在PATH中"
-      #     }
-          
-      #     # 可选：验证其他工具是否被清理
-      #     Write-Host "`n🔍 检查git是否存在："
-      #     git --version 2>&1
-      #     if ($LASTEXITCODE -ne 0) {
-      #         Write-Host "✅ git已不在PATH中"
-      #     }
 
 
       - name: 安装 ninja
