@@ -5,8 +5,8 @@ jobs:
   clean-env:
     runs-on: windows-latest
     steps:
-      - name: 安装 ninja
-        run: choco install ninja
+      # - name: 安装 ninja
+      #   run: choco install ninja
 
 
       - name: 安装 Qt
