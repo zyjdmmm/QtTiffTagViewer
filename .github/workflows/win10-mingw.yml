@@ -5,6 +5,7 @@ jobs:
   clean-env:
     runs-on: windows-latest
     steps:
+      # 注意：这个并不需要，qt自带下载的有ninja
       # - name: 安装 ninja
       #   run: choco install ninja
 

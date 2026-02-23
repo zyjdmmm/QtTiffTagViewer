@@ -1,0 +1,33 @@
+name: TagView-CI-Ubuntu
+ 
+on: [push]
+
+
+jobs:
+  build:
+    name: "Build"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 安装 Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          aqtversion: '==3.1.*'
+          version: '6.8.3'
+          host: 'linux'
+          target: 'desktop'
+          arch: 'linux_gcc_64'
+          modules: 'qt5compat'
+          tools: 'tools_ninja tools_cmake'
+
+      - name: 下载项目代码
+        uses: actions/checkout@v4
+
+
+      - name: 编译
+        run: |
+          Write-Host "✅ 最后检查一次PATH："
+          $env:PATH -split ';' | ForEach-Object { Write-Host "  $_" }
+
+          cmake -B ./build -DCMAKE_BUILD_TYPE=Debug -G Ninja
+          cmake --build ./build
