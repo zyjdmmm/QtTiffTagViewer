@@ -1,4 +1,4 @@
-name: TagView-CI-Ubuntu
+name: ubuntu
  
 on: [push]
 

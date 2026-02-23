@@ -1,4 +1,4 @@
-name: Fixed Clean Win11 Env
+name: win10-mingw
 on: [push]
 
 jobs:
